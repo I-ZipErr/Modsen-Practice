@@ -1,0 +1,10 @@
+services:
+  postgresql:
+    image: "postgres:17.2-alpine3.21"
+    ports:
+      - "5432:5432"
+    env_file:
+      - path: ./postgres.env
+        required: true
+    environment:
+      POSTGRES_USER: "Alohamore"

@@ -1,0 +1,17 @@
+services:
+  web:
+    build: ./flask-dockerfile/
+    deploy:
+      replicas: 3
+    networks:
+      - loadbalancer-network
+  loadbalancer:
+    build: ./nginx-dockerfile/
+    depends_on:
+      - web
+    ports:
+      - 8080:80
+    networks:
+      - loadbalancer-network
+networks:
+  loadbalancer-network:
