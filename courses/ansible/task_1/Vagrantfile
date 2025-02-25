@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+SSH_USERNAME = "iziperr"
+
+nodes = [
+  {
+  name: "ubuntu",
+  box: "ubuntu/jammy64",
+  ip: "172.16.0.11",
+  netmask: "255.255.0.0",
+  memory: "4096",
+  cpus: 4,
+#   shpath:"../2_k8s_install/k8s_worker_install.sh"
+},
+  {
+  name: "fedora",
+  box: "bento/fedora-39",
+  ip: "172.16.0.12",
+  netmask: "255.255.0.0",
+  memory: "4096",
+  cpus: 4,
+#   shpath:"../2_k8s_install/k8s_worker_install.sh"
+}
+]
+
+Vagrant.configure("2") do |config|
+  nodes.each do |node|
+    config.vm.define node[:name] do |machine|
+      machine.vm.box = node[:box]
+      machine.vm.hostname = node[:name]
+      # machine.vm.network 'private_network', ip: node[:ip], netmask: node[:netmask]
+      machine.vm.network 'public_network', bridge: "wlp2s0"
+      machine.vm.provider "virtualbox" do |vb|
+        vb.gui = false
+        vb.name = node[:name]
+		    vb.memory = node[:memory]
+		    vb.cpus = node[:cpus]
+      end
+    end
+  end
+end

@@ -1,0 +1,60 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+DEFAULT_SH_SCRIPT = "../2_k8s_install/default.sh"
+
+nodes = [
+  {
+  name: "worker1",
+  ip: "172.16.0.11",
+  netmask: "255.255.0.0",
+  memory: "4096",
+  cpus: 4,
+  shpath:"../2_k8s_install/k8s_worker_install.sh"
+},
+  {
+  name: "worker2",
+  ip: "172.16.0.12",
+  netmask: "255.255.0.0",
+  memory: "4096",
+  cpus: 4,
+  shpath:"../2_k8s_install/k8s_worker_install.sh"
+},
+  {
+  name: "master",
+  ip: "172.16.0.1",
+  netmask: "255.255.0.0",
+  memory: "2048",
+  cpus: 2,
+  #:nodeinnerport: ""
+  #:hostaccesport: ""
+  shpath:"../2_k8s_install/k8s_master_install.sh"
+}
+]
+
+
+# # alternative mirrror for vagrant repo in case manual installation doesn't works
+# ENV['VAGRANT_SERVER_URL'] = 'http://vagrant.elab.pro'
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "ubuntu/jammy64"
+  #url leads to local box storage, box was manualy downloaded by Brovser+VPN from 
+  #https://portal.cloud.hashicorp.com/vagrant/discover/ubuntu/jammy64 than added by
+  #vagrant box add ubuntu/jammy64 "some\path\file_name"
+  # config.vm.box_url = "C:\Users\IZipErr\.vagrant.d\boxes"
+
+  nodes.each do |node|
+    config.vm.define node[:name] do |machine|
+      machine.vm.hostname = node[:name]
+      machine.vm.network 'private_network', ip: node[:ip], netmask: node[:netmask]
+      machine.vm.provider "virtualbox" do |vb|
+        vb.gui = false
+        vb.name = node[:name]
+				vb.memory = node[:memory]
+				vb.cpus = node[:cpus]
+      end
+    machine.vm.provision :shell, path: node[:shpath] || DEFAULT_SH_SCRIPT
+    end
+  end
+end
