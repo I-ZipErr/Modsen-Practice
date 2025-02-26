@@ -1,0 +1,40 @@
+---
+- name: Install nginx on Ubuntu VMs managed by vagrant
+  hosts: ubuntu_vms
+  remote_user: vagrant
+
+  tasks:
+    - name: Installing nginx package
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+        package:
+          - nginx
+    
+    - name: Enabaling nginx autostart on each boot
+      become: true
+      ansible.builtin.systemd_service:
+        enabled: true
+        name: nginx
+        state: started
+        
+
+
+- name: Install httpd on Fedora VMs managed by vagrant
+  hosts: fedora_vms
+  remote_user: vagrant
+
+  tasks:
+    - name: Installing httpd package
+      become: true
+      ansible.builtin.dnf:
+        update_cache: true
+        name:
+          - httpd
+
+    - name: Enabling httpd autostart on each boot
+      become: true
+      ansible.builtin.systemd_service:
+        enabled: true
+        name: httpd
+        state: started

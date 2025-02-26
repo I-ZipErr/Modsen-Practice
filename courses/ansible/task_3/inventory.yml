@@ -1,8 +1,14 @@
-ubuntu:
+ubuntu_vms:
   hosts:
     ubuntu:
       ansible_ssh_extra_args: -F ./vagrant_ubuntu_ssh
-fedora:
+  vars:
+    root_user_group: "sudo"
+
+
+fedora_vms:
   hosts:
     fedora: 
       ansible_ssh_extra_args: -F ./vagrant_fedora_ssh 
+  vars:
+    root_user_group: "wheel"

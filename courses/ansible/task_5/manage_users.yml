@@ -1,0 +1,19 @@
+---
+- name: Add ansible_user on every machine managed with root priv
+  hosts: all
+  remote_user: vagrant
+  vars:
+    username: "ansible_user"
+    password: "$6$BzG3uP7pAeHOiqPP$sBTbX8bvuOrvcBsVdAj/KIgpyfRzmfftDm6oq7kPOLCHC1tGOKwjYFT3JJbLZ/QmXU4SblFOziyzBeOLbql/Z0"
+  tasks:
+    - name: Adding user with sudo
+      become: true
+      ansible.builtin.user:
+        name: "{{ username }}"
+        password: "{{ password }}"
+        state: present
+        update_password: on_create
+        shell: /bin/bash
+        groups: "{{ root_user_group }}"
+        append: yes
+        create_home: true
