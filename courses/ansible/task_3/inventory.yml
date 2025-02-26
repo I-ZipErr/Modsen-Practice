@@ -1,0 +1,8 @@
+ubuntu:
+  hosts:
+    ubuntu:
+      ansible_ssh_extra_args: -F ./vagrant_ubuntu_ssh
+fedora:
+  hosts:
+    fedora: 
+      ansible_ssh_extra_args: -F ./vagrant_fedora_ssh 

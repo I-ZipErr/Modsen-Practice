@@ -1,8 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-SSH_USERNAME = "iziperr"
-
 nodes = [
   {
   name: "ubuntu",
@@ -11,7 +9,7 @@ nodes = [
   netmask: "255.255.0.0",
   memory: "4096",
   cpus: 4,
-#   shpath:"../2_k8s_install/k8s_worker_install.sh"
+  shpath:"../task_2/ubuntu_python_install.sh"
 },
   {
   name: "fedora",
@@ -20,7 +18,7 @@ nodes = [
   netmask: "255.255.0.0",
   memory: "4096",
   cpus: 4,
-#   shpath:"../2_k8s_install/k8s_worker_install.sh"
+  shpath:"../task_2/fedora_python_install.sh"
 }
 ]
 
@@ -37,6 +35,7 @@ Vagrant.configure("2") do |config|
 		    vb.memory = node[:memory]
 		    vb.cpus = node[:cpus]
       end
+      machine.vm.provision :shell, path: node[:shpath]  #|| DEFAULT_SH_SCRIPT
     end
   end
 end
