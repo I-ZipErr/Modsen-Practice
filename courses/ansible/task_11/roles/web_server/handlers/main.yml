@@ -1,0 +1,19 @@
+---
+
+- name: Reload nginx
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+
+- name: Reload httpd
+  become: true
+  ansible.builtin.service:
+    name: httpd
+    state: reloaded
+    
+- name: Reload firewalld
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded

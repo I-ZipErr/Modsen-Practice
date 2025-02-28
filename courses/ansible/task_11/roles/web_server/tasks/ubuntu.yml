@@ -1,0 +1,45 @@
+---
+- name: Installing nginx package
+  become: true
+  ansible.builtin.apt:
+    allow_downgrade: true 
+    update_cache: true
+    package:
+      - '{{ item.name }}={{ item.version }}'
+  loop: '{{ ubuntu_vms.packages }}'
+
+
+- name: Copying index.html template file to {{ indexpath_to_paste }}
+  become: true
+  ansible.builtin.template:
+    src: '{{ index_name_to_copy }}'
+    dest: '{{ index_path_to_paste }}/{{ index_name_to_paste }}'
+    owner: vagrant
+    mode: '0644'
+  notify:
+    - Reload nginx
+
+- name: Enabaling nginx autostart on each boot
+  become: true
+  ansible.builtin.systemd_service:
+    enabled: true
+    name: nginx
+    state: started
+
+- name: Disable UFW to prevent netwroking issues during play execution
+  become: true
+  ansible.builtin.ufw:
+    state: disabled
+
+- name: Opening ports
+  become: true
+  ansible.builtin.ufw:
+    rule: allow
+    port: '{{ item }}'
+    proto: any
+  loop: '{{ ports_to_open }}'
+
+- name: Enabling UFW
+  become: true
+  ansible.builtin.ufw:
+    state: enabled

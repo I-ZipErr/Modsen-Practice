@@ -1,0 +1,57 @@
+---
+- name: Opening ports on Debian-based machines
+  hosts: ubuntu_vms
+  remote_user: vagrant
+  vars:
+    ports_to_open:
+      - 22 # to prevent SSH from blocking
+      - 80 # target port
+  tasks:
+    - name: Disable UFW to prevent netwroking issues during play execution
+      become: true
+      ansible.builtin.ufw:
+        state: disabled
+
+    - name: Opening ports
+      become: true
+      ansible.builtin.ufw:
+        rule: allow
+        port: '{{ item }}'
+        proto: any
+      loop: '{{ ports_to_open }}'
+
+    - name: Enabling UFW
+      become: true
+      ansible.builtin.ufw:
+        state: enabled
+
+- name: Opening ports on Red Hat based machines
+  hosts: fedora_vms
+  remote_user: vagrant
+  vars:
+    ports_to_open:
+      - 22 # to prevent SSH from blocking
+      - 80 # target port
+  tasks:
+    - name: Enabling firewall
+      become: true
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Opening ports
+      become: true
+      ansible.posix.firewalld:
+        port: "{{ item }}/tcp"
+        zone: public
+        state: enabled
+        permanent: yes
+        immediate: yes
+      loop: "{{ ports_to_open }}"
+
+    - name: Reloading firewalld
+      become: true
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded

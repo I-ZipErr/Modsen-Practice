@@ -1,0 +1,60 @@
+---
+- name: Installing httpd package
+  become: true
+  ansible.builtin.dnf:
+    update_cache: true
+    allow_downgrade: true
+    name:
+      - '{{ item.name }} = {{ item.version }}'
+  loop: '{{ fedora_vms.packages }}'
+
+- name: Enabling httpd autostart on each boot
+  block:
+    - become: true
+      ansible.builtin.systemd_service:
+        enabled: true
+        name: httpd
+        state: started
+  rescue:
+    - name: Uninstall older version of mod_http2
+      ansible.builtin.dnf:
+        name: httpd
+        state: absent
+        autoremove: no
+    - name: Install newer version of mod_http2
+      ansible.builtin.dnf:
+        name: httpd
+        autoremove: no
+    - become: true
+      ansible.builtin.systemd_service:
+        enabled: true
+        name: httpd
+        state: started
+
+- name: Copying index.html template file to {{ indexpath_to_paste }}
+  become: true
+  ansible.builtin.template:
+    src: '{{ index_name_to_copy }}'
+    dest: '{{ index_path_to_paste }}/{{ index_name_to_paste }}'
+    owner: vagrant
+    mode: '0644'
+  notify:
+    - Reload httpd
+  
+- name: Enabling firewalld
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Opening ports
+  become: true
+  ansible.posix.firewalld:
+    port: "{{ item }}/tcp"
+    zone: public
+    state: enabled
+    permanent: yes
+    immediate: yes
+  loop: "{{ ports_to_open }}"
+  notify: Reload firewalld

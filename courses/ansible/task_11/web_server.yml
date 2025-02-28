@@ -1,0 +1,7 @@
+---
+- name: Executing roles for establishing web server
+  hosts: all
+  remote_user: vagrant
+  roles:
+    - web_server
+        

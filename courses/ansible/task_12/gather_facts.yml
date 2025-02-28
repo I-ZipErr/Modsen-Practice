@@ -1,0 +1,8 @@
+---
+- name: Executing roles for establishing web server
+  gather_facts: true  #by default set to true, but it repeated here just to make task solution more ExPrEsSiVe
+  hosts: all
+  tasks:
+    - name: Printing info about distro and it's version
+      ansible.builtin.debug:
+        msg: "Distro: {{ ansible_facts['distribution'] }}. Version: {{ ansible_facts['distribution_version'] }}"

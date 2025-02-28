@@ -1,0 +1,16 @@
+---
+- name: Copy template file to hosts
+  hosts: all
+  remote_user: vagrant
+  vars:
+    path_to_copy: /home/iziperr/Documents/Modsen-Practice/courses/ansible/task_8/index.html.j2
+    path_to_paste: /var/www/html/
+    name_to_paste: index.html
+  tasks:
+    - name: Template file to {{ path_to_paste }}
+      become: true
+      ansible.builtin.template:
+        src: '{{ path_to_copy }}'
+        dest: '{{ path_to_paste }}/{{ name_to_paste }}'
+        owner: vagrant
+        mode: '0644'

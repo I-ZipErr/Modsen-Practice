@@ -1,0 +1,8 @@
+ubuntu_vms:
+  packages:
+    - name: nginx
+      version: 1.18.0-6ubuntu14.6
+fedora_vms:
+  packages:
+    - name: httpd
+      version: 2.4.57

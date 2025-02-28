@@ -1,0 +1,25 @@
+---
+- name: Copy template file to hosts
+  hosts: all
+  remote_user: vagrant
+  tasks:
+    - name: This block will cause an error
+      block:
+        - name: Trying to install non existing package without sudo
+          no_log: true
+          ansible.builtin.apt:
+            package:
+              - LeeroyJenkins1.2.3.4.5.6
+          register: sh_out
+      
+      rescue:
+        - name: Print a message in case of error
+          ansible.builtin.debug:
+            msg: 'Package not installed! More about the issue:
+              {{ sh_out }}'
+
+      always:
+        - name: Always print a wish for you
+          ansible.builtin.debug:
+            msg: Have a nice day!
+    

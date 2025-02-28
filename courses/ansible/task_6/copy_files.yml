@@ -1,0 +1,15 @@
+---
+- name: Copy index.html file to hosts
+  hosts: all
+  remote_user: vagrant
+  vars:
+    path_to_copy: /home/iziperr/Documents/Modsen-Practice/courses/ansible/task_6/index.html
+    path_to_paste: /var/www/html/
+  tasks:
+    - name: Copying file to destination
+      become: true
+      ansible.builtin.copy:
+        src: "{{ path_to_copy }}"
+        dest: "{{ path_to_paste }}"
+        owner: vagrant
+        mode: '0644'

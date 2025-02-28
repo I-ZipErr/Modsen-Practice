@@ -1,0 +1,44 @@
+---
+- name: Install nginx on Ubuntu VMs managed by vagrant
+  hosts: ubuntu_vms
+  remote_user: vagrant
+  vars_files:
+    - /home/iziperr/Documents/Modsen-Practice/courses/ansible/task_9/group_vars/all.yml
+  tasks:
+    - name: Installing nginx package
+      become: true
+      ansible.builtin.apt:
+        allow_downgrade: true 
+        update_cache: true
+        package:
+          - '{{ ubuntu_vms.packages[0].name }}={{ ubuntu_vms.packages[0].version }}'
+    
+    - name: Enabaling nginx autostart on each boot
+      become: true
+      ansible.builtin.systemd_service:
+        enabled: true
+        name: nginx
+        state: started
+        
+
+
+- name: Install httpd on Fedora VMs managed by vagrant
+  hosts: fedora_vms
+  remote_user: vagrant
+
+  tasks:
+    - name: Installing httpd package
+      become: true
+      ansible.builtin.dnf:
+        update_cache: true
+        allow_downgrade: true
+        name:
+          - '{{ fedora_vms.packages[0].name }} = {{ fedora_vms.packages[0].version }}'
+
+    - name: Enabling httpd autostart on each boot
+      become: true
+      ansible.builtin.systemd_service:
+        enabled: true
+        name: httpd
+        state: started
+
