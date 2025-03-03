@@ -19,6 +19,13 @@
         enabled: true
         name: nginx
         state: started
+
+    - name: Enabaling nginx autostart on each boot
+      become: true
+      ansible.builtin.systemd_service:
+        enabled: true
+        name: "@Development tool" 
+        state: started
         
 
 
