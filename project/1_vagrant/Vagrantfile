@@ -54,7 +54,7 @@ Vagrant.configure("2") do |config|
 				vb.memory = node[:memory]
 				vb.cpus = node[:cpus]
       end
-    machine.vm.provision :shell, path: node[:shpath] || DEFAULT_SH_SCRIPT
+    # machine.vm.provision :shell, path: node[:shpath] || DEFAULT_SH_SCRIPT
     end
   end
 end

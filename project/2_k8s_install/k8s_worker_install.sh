@@ -1,18 +1,15 @@
 #!/bin/bash
-# disabling SWAP (файл подкачки) file, Kubernetes requires it for stable work
 echo -e "\n\n==========Swap disabling started!=========="
 sudo swapoff -a  
 sudo sed -i '/ swap / s/^/#/' /etc/fstab
 echo "===============Swap disabled!=============="
  # openning ports for k8s node installation
- # list of required ports: https://v1-27.docs.kubernetes.io/docs/reference/networking/ports-and-protocols/
 echo  -e "\n\n==========Ports opening started!==========="
 iptables -I INPUT 1 -p tcp --match multiport --dports 10250,30000:32767 -j ACCEPT
 #sudo ufw allow 10250/tcp 
 #sudo ufw allow 30000:32767/tcp  
 echo "================Ports opened!==============="
  # forwarding IPv4 and letting iptables see bridged traffic for Kubernetes container runtimes
- # see: https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/
 echo  -e "\n\n==========Forwarding IPv4 started!==========="
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 overlay
@@ -53,15 +50,10 @@ sudo dpkg -i cri-dockerd_0.3.16.3-0.ubuntu-jammy_amd64.deb
 systemctl enable --now cri-docker.socket
 echo "=========Docker installed finished!========="
  # kubeadm installation for Debian-based Linux
- # see https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 echo  -e "\n\n=====Kubernetes installation started!======"
 sudo apt-get update
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-# echo "deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v1.27/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
-
-# kubeadm join 172.16.0.1:6443 --token a0ksgc.0jldpt5js02ywlwh \
-#     master:     --discovery-token-ca-cert-hash sha256:d9af530ab5b19387d78f4e8e0973535b2c3e2bfa22600529e6119b1620adc5d6

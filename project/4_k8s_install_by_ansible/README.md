@@ -1,0 +1,1 @@
+ansible-playbook -i inventory.yml --check ansible_k8s_setup.yml

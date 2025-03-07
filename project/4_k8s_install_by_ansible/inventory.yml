@@ -1,0 +1,12 @@
+control_plane:
+  hosts:
+    master:
+      ansible_ssh_extra_args: -F ../1_vagrant/vagrant_master
+
+
+workers:
+  hosts:
+    worker1:
+      ansible_ssh_extra_args:  -F ../1_vagrant/vagrant_worker1
+    worker2:
+      ansible_ssh_extra_args: -F ../1_vagrant/vagrant_worker2

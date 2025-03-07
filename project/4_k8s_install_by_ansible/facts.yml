@@ -1,0 +1,59 @@
+- name: masters_ports
+  hosts: contorol_plane
+  # vars:
+  #   deb_architecture: {
+  #     "aarch64": "arm64",
+  #     "x86_64": "amd64"
+  #   }
+  tasks:
+  # - name: Print all available facts
+  #   ansible.builtin.debug:
+  #     var: ansible_facts
+  - name: Print ansible_architecture
+    ansible.builtin.debug:
+      msg: "{{ ansible_env.HOME }}"
+
+  - ansible.builtin.set_fact:
+      join_command_global: "{{ ansible_env.HOME }} --cri-socket=unix:///var/run/cri-dockerd.sock"
+    delegate_to: "{{ item }}"
+    delegate_facts: true
+    loop: "{{ groups['workers'] }}"
+
+- name: workers
+  hosts: workers
+  tasks:
+    - name: Print join_command_global
+      ansible.builtin.debug:
+        msg: "{{ join_command_global }}"
+
+  # - name: Getting Flannel networking provider
+  #   become: true
+  #   ansible.builtin.get_url:
+  #     url: https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+  #     dest: "{{ ansible_env.HOME }}/kube-flannel.yml"
+
+  # - name: Configuring Flannel to use right network interface in vagrant
+  #   become: true
+  #   ansible.builtin.lineinfile:
+  #     path: "{{ ansible_env.HOME }}/kube-flannel.yml"
+  #     insertafter: "--kube-subnet-mgr$"
+  #     line: "        - --iface=enp0s8"
+      
+  # - name: Getting Kubernetes {{ kubernetes_version }} repository key
+  #   become: true
+  #   ansible.builtin.shell: |
+  #     curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+
+  # - name:
+  #   become: true
+  #   ansible.builtin.get_url:
+  #     url: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key
+  #     dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+
+  # - name: Adding Kubernetes {{ kubernetes_version }} repository
+  #   become: true
+  #   ansible.builtin.apt_repository:
+  #     repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/ /"
+  #     state: present
+  #     filename: kubernetes

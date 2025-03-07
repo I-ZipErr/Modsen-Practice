@@ -17,18 +17,11 @@ sudo swapoff -a
 sudo sed -i '/ swap / s/^/#/' /etc/fstab
 echo "===============Swap disabled!=============="
  # openning ports for k8s master node installation
- # list of required ports: https://v1-27.docs.kubernetes.io/docs/reference/networking/ports-and-protocols/
 echo  -e "\n\n==========Ports opening started!==========="
 iptables -I INPUT 1 -p tcp --match multiport --dports 6443,2379:2380,10250,10259,10257 -j ACCEPT
-#sudo ufw allow 6443/tcp 
-#sudo ufw allow 2379:2380/tcp  
-#sudo ufw allow 10250/tcp  
-#sudo ufw allow 10259/tcp  
-#sudo ufw allow 10257/tcp 
 echo "================Ports opened!==============="
 
  # forwarding IPv4 and letting iptables see bridged traffic for Kubernetes container runtimes
- # see: https://v1-27.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/
 echo  -e "\n\n==========Forwarding IPv4 started!==========="
 #????????
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
@@ -70,15 +63,15 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 wget -q https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.16/cri-dockerd_0.3.16.3-0.ubuntu-jammy_amd64.deb
 sudo dpkg -i cri-dockerd_0.3.16.3-0.ubuntu-jammy_amd64.deb
+sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
+systemctl daemon-reload
 systemctl enable --now cri-docker.socket
 echo "=========Docker installed finished!========="
  # kubeadm installation for Debian-based Linux
- # see https://v1-27.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 echo  -e "\n\n=====Kubernetes installation started!======"
 sudo apt-get update
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-# echo "deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v1.27/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
@@ -96,23 +89,25 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 sudo systemctl restart kubelet
 sudo kubeadm init --apiserver-advertise-address=172.16.0.1 --cri-socket=unix:///var/run/cri-dockerd.sock --pod-network-cidr=10.244.0.0/16
- # needs to input manually due to vagrant bug
-#mkdir -p $HOME/.kube
-#sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-#sudo chown $(id -u):$(id -g) $HOME/.kube/config
-#export KUBECONFIG=/etc/kubernetes/admin.conf
-#sudo chown $(id -u):$(id -g) /etc/kubernetes/admin.conf
- # changed --iface=eth1 for vagrant 
-#wget -q https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
-# sed -i '/- --kube-subnet-mgr/a\        - --iface=eth1' kube-flannel.yml \
-# kubectl apply -f kube-flannel.yml
- # also needs some time to set up network, state can be checked by pinging from master
- # PING ALL WORKERS FROM MASTER BEFORE JOIN
-#sudo kubeadm join 172.16.0.1:6443 --token e9udrv.ran6tpet2xyoisfx --discovery-token-ca-cert-hash sha256:1f19abe4db3fc909fce553151fc4a36bc0ea60b32621eb1fd30d576763b1686f  --cri-socket=unix:///var/run/cri-dockerd.sock
- #SOME FIX AFTER JOINS:
- #mv  $HOME/.kube $HOME/.kube.bak
-#mkdir $HOME/.kube
-#sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-#sudo chown $(id -u):$(id -g) $HOME/.kube/config
-#  kubeadm join 172.16.0.1:6443 --token xfbqbo.vnqmbeddbcj5nqjo \
-    # master:     --discovery-token-ca-cert-hash sha256:925c05cb8cc0d4bba0de184909da3953b4feb9da454d12365fdd1906ce522854
+
+
+echo -e "\n\n=========Configuring k8s to be accesible without root for vagrant user========="
+mkdir -p /home/vagrant/.kube
+sudo cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+sudo chown vagrant:vagrant /home/vagrant/.kube/config
+echo "========= K8s configured!========="
+
+
+echo -e "\n\n=========Networking plugin installation started========="
+wget -q https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+ # changed --iface=enp0s8  for vagrant 
+sed -i '/- --kube-subnet-mgr/a\        - --iface=enp0s8' kube-flannel.yml
+kubectl apply -f kube-flannel.yml
+sleep 5
+echo "=========Networking plugin installed!========="
+
+echo -e "\n\n=========Pinging hosts to enshure connection========="
+ping worker1 -c 5
+ping worker2 -c 5
+echo "=========Pinging done!========="
+# kubeadm join 172.16.0.1:6443 --token he53na.ys7q5gs76qi4aak1 --discovery-token-ca-cert-hash sha256:08619a91aec3d94ecf164f4d8fd449ef0240a25c3225762745dcf092605deeaa --cri-socket unix:///var/run/cri-dockerd.sock

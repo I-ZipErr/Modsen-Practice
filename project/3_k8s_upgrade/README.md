@@ -1,0 +1,1 @@
+ssh -F ./vagrant_master master < ../3_k8s_upgrade/kubernetes-master-update132.sh 
